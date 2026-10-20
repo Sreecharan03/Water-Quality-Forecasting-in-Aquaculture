@@ -5,7 +5,7 @@
 .modal.toml
 
 # Data must never be committed (licence unclear; Modal-only compute)
-data/
+/data/
 *.csv
 *.xlsx
 *.parquet
@@ -21,3 +21,4 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
+
