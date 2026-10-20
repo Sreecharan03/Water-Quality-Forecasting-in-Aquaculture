@@ -1,0 +1,10 @@
+[project]
+name = "aquatic-xai"
+version = "0.1.0"
+description = "An aquatic model for water quality prediction and interpretation using explainable AI"
+requires-python = ">=3.11"
+# Runtime dependencies are pinned in modal_jobs/common.py (all compute runs on Modal).
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

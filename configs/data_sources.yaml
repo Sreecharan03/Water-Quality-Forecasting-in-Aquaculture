@@ -1,0 +1,18 @@
+# Source registry. Everything is fetched directly from source to Modal; nothing is stored locally.
+sources:
+  fwi-data-campaign:
+    kind: github
+    repo: fish-welfare-initiative/Data-Campaign-Data
+    ref: main                      # resolved to an immutable commit SHA at ingest time
+    include_prefixes: ["csv/", "README.md"]
+    licence_state: "UNCLEAR: README asks for citation only; no LICENSE file. Do not redistribute raw files."
+    citation: "Fish Welfare Initiative, Continuous Water Quality Monitoring Data (Data Campaign), Eluru, Andhra Pradesh, Nov 2025 - Jan 2026."
+    pond_file_glob: "csv/ara2_*.csv"
+    metadata_files: ["csv/Key_Events.csv", "csv/QC_Flags.csv"]
+
+profiling:
+  nominal_interval_min: 15
+  gap_threshold_min: 20            # README QC rule: time_gap_>20min
+  grid_tolerance_min: 3            # max offset when snapping a timestamp to the 15-min grid
+  horizons_steps: [1, 4, 24]       # 15 min, 1 h, 6 h
+  lookback_steps: [4, 24]          # 1 h, 6 h of required history
