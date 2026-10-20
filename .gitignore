@@ -1,0 +1,23 @@
+﻿# Secrets / environment
+.env
+*.env
+!.env.example
+.modal.toml
+
+# Data must never be committed (licence unclear; Modal-only compute)
+data/
+*.csv
+*.xlsx
+*.parquet
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
