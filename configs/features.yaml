@@ -1,0 +1,19 @@
+# Phase 3 feature definition. Changing any value changes the feature version hash.
+features:
+  variables: [DO, pH, Temp]
+  lags: [1, 2, 4, 8, 12, 24]        # past 15-min steps: 15 min .. 6 h
+  windows: [4, 12, 24]              # trailing windows incl. the origin: 1 h, 3 h, 6 h
+  slope_window: 12                  # 3 h trailing least-squares slope (units per hour)
+  age_cap: 96                       # steps; "no valid reading for >= 24 h" is capped here
+  flag_lookback: 24                 # steps for trailing flag / presence counts
+  warmup_steps: 24                  # origins earlier than this have an incomplete 6 h history
+  horizons: [1, 4, 24]              # 15 min, 1 h, 6 h
+
+leakage_tests:
+  samples_per_pond: 40
+  seed: 20261020
+
+informativeness:
+  train_like_fraction: 0.5          # descriptive Spearman on the first 50% of each pond's timeline only
+  horizons: [4, 24]
+  top_k: 6
