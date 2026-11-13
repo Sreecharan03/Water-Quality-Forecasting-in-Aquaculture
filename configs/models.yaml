@@ -1,0 +1,43 @@
+# Phase 5 fixed model settings. NO hyperparameter search in this phase; changing any value changes the experiment id.
+models:
+  seeds: [0, 1, 2]                  # stochastic models are trained with each seed; ridge is deterministic (one fit)
+  seasonal_steps: 96                # same time yesterday = 96 x 15 min
+  ridge:
+    alpha: 1.0
+  lightgbm:
+    n_estimators: 300
+    learning_rate: 0.05
+    num_leaves: 31
+    min_child_samples: 50
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+    deterministic: true
+    force_row_wise: true
+  xgboost:
+    n_estimators: 300
+    learning_rate: 0.05
+    max_depth: 6
+    min_child_weight: 5
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+    tree_method: hist
+
+regimes:                            # validation-side regimes only; the FINAL_* regimes are NOT run in this phase
+  - dev_future_seen_ponds
+  - dev_future_unseen_fold0
+  - dev_future_unseen_fold1
+  - dev_future_unseen_fold2
+  - dev_future_unseen_fold3
+  - diagnostic_unseen_sametime_fold0
+  - diagnostic_unseen_sametime_fold1
+  - diagnostic_unseen_sametime_fold2
+  - diagnostic_unseen_sametime_fold3
+
+evaluation:
+  variables: [DO, pH, Temp]
+  horizons: [1, 4, 24]
+  low_quantile: 0.10                # "low-value stratum" = bottom 10% of the regime's training targets (data-defined, no outside threshold)
+  bootstrap: {B: 2000, seed: 20261113}   # blocked by (pond x calendar day)
