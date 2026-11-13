@@ -1,0 +1,13 @@
+# Phase 4 split protocol. Frozen after human approval; changing any value changes the split version hash.
+splits:
+  nominal_interval_min: 15
+  embargo_steps: 48                 # >= max lookback (24) + max horizon (24) steps = 12 h
+  max_lookback_steps: 24
+  max_horizon_steps: 24
+  fractions: {train: 0.6, val: 0.2}   # test = remainder; cutoffs fall on calendar midnights (IST), shared by all ponds
+  n_sealed_ponds: 4                 # unseen-pond sealed test ponds, drawn at random with the seed below
+  seed: 20261113                    # fixed BEFORE any model was trained
+  cv_folds: 4                       # grouped (by pond) folds over the remaining development ponds
+  min_val_origins: 300              # a dev pond needs this many usable validation origins to be held out in CV
+  min_test_origins: 300             # a pond needs this many usable test-window origins to be drawable as sealed
+  usable_requires: [y_DO_h24, y_pH_h24, y_Temp_h24]   # usable origin = non-warm-up and all 6 h targets valid

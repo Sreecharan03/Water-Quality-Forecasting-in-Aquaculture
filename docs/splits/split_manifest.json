@@ -1,0 +1,97 @@
+{
+  "split_version": "sp-2dd59e32cff4",
+  "feature_version": "ft-30c94e8fe1bd",
+  "config": {
+    "nominal_interval_min": 15,
+    "embargo_steps": 48,
+    "max_lookback_steps": 24,
+    "max_horizon_steps": 24,
+    "fractions": {
+      "train": 0.6,
+      "val": 0.2
+    },
+    "n_sealed_ponds": 4,
+    "seed": 20261113,
+    "cv_folds": 4,
+    "min_val_origins": 300,
+    "min_test_origins": 300,
+    "usable_requires": [
+      "y_DO_h24",
+      "y_pH_h24",
+      "y_Temp_h24"
+    ]
+  },
+  "assignments_content_hash": "bb7a56019fc5f84556b3b7b8d573abd44827e369d81e4a552bb4571e897e8cae",
+  "info": {
+    "cutoff_train_end": "2026-01-10 00:00:00",
+    "cutoff_val_end": "2026-01-20 00:00:00",
+    "embargo_hours": 12.0,
+    "sealed_ponds": [
+      "ara2_3ed4df8e",
+      "ara2_45e1cde5",
+      "ara2_b3d128ac",
+      "ara2_d52ddb31"
+    ],
+    "dev_ponds": [
+      "ara2_0677080b",
+      "ara2_0f143c64",
+      "ara2_148f1633",
+      "ara2_176528d3",
+      "ara2_29660d32",
+      "ara2_3b2f3973",
+      "ara2_3eab831e",
+      "ara2_4f79fc8d",
+      "ara2_573a2826",
+      "ara2_6ca69422",
+      "ara2_858b914c",
+      "ara2_c9cdacda",
+      "ara2_ca187575"
+    ],
+    "folds": {
+      "ara2_0677080b": 0,
+      "ara2_0f143c64": 3,
+      "ara2_148f1633": 2,
+      "ara2_176528d3": 3,
+      "ara2_29660d32": 0,
+      "ara2_3b2f3973": 0,
+      "ara2_3eab831e": 2,
+      "ara2_4f79fc8d": 1,
+      "ara2_573a2826": 3,
+      "ara2_6ca69422": 1,
+      "ara2_858b914c": -1,
+      "ara2_c9cdacda": 1,
+      "ara2_ca187575": 2
+    },
+    "eligible_sealed_ponds": [
+      "ara2_0677080b",
+      "ara2_0f143c64",
+      "ara2_148f1633",
+      "ara2_176528d3",
+      "ara2_29660d32",
+      "ara2_3b2f3973",
+      "ara2_3eab831e",
+      "ara2_3ed4df8e",
+      "ara2_45e1cde5",
+      "ara2_4f79fc8d",
+      "ara2_573a2826",
+      "ara2_6ca69422",
+      "ara2_b3d128ac",
+      "ara2_c9cdacda",
+      "ara2_d52ddb31"
+    ],
+    "seed": 20261113
+  },
+  "regimes": [
+    "dev_future_seen_ponds",
+    "dev_future_unseen_fold0",
+    "diagnostic_unseen_sametime_fold0",
+    "dev_future_unseen_fold1",
+    "diagnostic_unseen_sametime_fold1",
+    "dev_future_unseen_fold2",
+    "diagnostic_unseen_sametime_fold2",
+    "dev_future_unseen_fold3",
+    "diagnostic_unseen_sametime_fold3",
+    "FINAL_seen_ponds_future",
+    "FINAL_unseen_ponds_future"
+  ]
+}

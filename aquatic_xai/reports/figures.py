@@ -6,10 +6,45 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.dates  # noqa: E402
+import matplotlib.patches  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
 LABELS = {"DO": "DO (mg/L)", "pH": "pH", "Temp": "Temperature (°C)"}
+
+
+ROLE_COLORS = {"dev_train": "#4c72b0", "dev_val": "#55a868", "seen_pond_test": "#c44e52",
+               "unseen_pond_test": "#8172b2", "sealed_pond_unused": "#cccccc", "embargo": "#ffffff"}
+
+
+def plot_split(a: pd.DataFrame, info: dict, path: Path) -> None:
+    """Gantt chart: one row per pond; colours are roles. Uses timestamps and roles only (no sensor values)."""
+    ponds = sorted(a["pond"].unique())
+    fig, ax = plt.subplots(figsize=(13, 0.45 * len(ponds) + 2))
+    d = a[~a["is_warmup"]]
+    for i, p in enumerate(ponds):
+        g = d[d["pond"] == p]
+        for role, color in ROLE_COLORS.items():
+            if role == "embargo":      # spans the whole validation window; drawing it would hide that window
+                continue
+            r = g[g["role"] == role]
+            if len(r) == 0:
+                continue
+            ax.barh(i, (r["ts_ist"].max() - r["ts_ist"].min()).total_seconds() / 86400,
+                    left=matplotlib.dates.date2num(r["ts_ist"].min()), color=color, edgecolor="none", height=0.6)
+    ax.set_yticks(range(len(ponds)))
+    ax.set_yticklabels([f"{p}{' *' if p in info['sealed_ponds'] else ''}" for p in ponds], fontsize=8)
+    for c in (info["cutoff_train_end"], info["cutoff_val_end"]):
+        ax.axvline(matplotlib.dates.date2num(pd.Timestamp(c)), color="black", ls="--", lw=1)
+    ax.xaxis_date()
+    handles = [matplotlib.patches.Patch(color=v, label=k) for k, v in ROLE_COLORS.items() if k != "embargo"]
+    ax.legend(handles=handles, loc="upper left", fontsize=8, ncol=3)
+    ax.set_title("Split design: roles by pond and time (* = sealed unseen-pond test; dashed = calendar cutoffs; embargo not drawn)")
+    fig.autofmt_xdate()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=110, bbox_inches="tight")
+    plt.close(fig)
 
 
 def plot_cleaning_audit(proc_by_pond: dict, ponds: list[str], path: Path, event_date: str) -> None:
