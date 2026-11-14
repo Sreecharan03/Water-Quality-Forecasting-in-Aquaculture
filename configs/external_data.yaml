@@ -1,0 +1,43 @@
+# Phase 1b contract: external dataset verification gate. Written BEFORE the candidate files were opened.
+# Purpose: find ONE external dataset to use as an external test (not training) for the Eluru models.
+candidate_1:
+  name: AquaSustain-Bench
+  zenodo_record: 21249767                # latest version of concept record 19998631 (the page we first read was 19998632)
+  file: AquaSustain-Bench-UPLOAD-THIS.zip
+  expected_md5: 711d0b43e57bcc805952e5881fa3bbc4
+  expected_bytes: 2169292
+  gate:                                  # ALL must hold for the dataset to be accepted as external data
+    G1_file_integrity: "downloaded file has the published md5"
+    G2_real_sensor_data: "the release itself states, and the files are consistent with, REAL field sensor series (not synthetic, simulated or placeholder)"
+    G3_variables: "dissolved oxygen, pH and water temperature are present"
+    G4_resolution: "15-minute (or finer) readings"
+    G5_length: "at least 9 months of continuous series for at least 3 farms"
+    G6_licence: "an open licence that allows research use with attribution"
+  if_gate_fails: "reject the dataset and say why; fall back to candidate_2; never use synthetic data as evidence about real ponds"
+candidate_2:
+  name: Salt-marsh pond monitoring (BCO-DMO 988873), real, CC-BY-4.0, 10-min DO/pH/temperature, 5 ponds, Apr 2023 to Jun 2024
+  limitation: "tidal salt marsh ponds in New Jersey, not aquaculture; used only as a stress test of generalisation and stated as such"
+rules:
+  - "Nothing from an external dataset is used for training or tuning in this phase."
+  - "Downloads happen on Modal; only aggregate descriptions are written to the repository; no raw external files are committed."
+
+# ---- Candidate 2 gate, written BEFORE its CSV was opened (2026-11-14) ----
+candidate_2_gate:
+  source_file: "https://datadocs.bco-dmo.org/dataset/988873/file/7D5YK41uEZBrB6/988873_v1_salt_pond_monitoring.csv"
+  expected_md5: 7337bc6512134cfef333f9e4edae3bf7      # from the BCO-DMO description page
+  expected_columns: [datetime_utc, site, lat, lon, depth, salinity, temperature, DOconc, DOeqsat, DOsat, pH]
+  DO_conversion: "mg/L = umol/kg x 31.998 x rho / 1000, rho = (1000 + 0.8 x salinity) / 1000 kg/L (approximate; only salinity-dependent)"
+  gate:
+    H1_file_integrity: "md5 equals the value above"
+    H2_real_field_data: "documented field loggers AND the series show real-data traits (missing/removed stretches, irregular quality-control gaps, non-periodic variation); no sign of a generator"
+    H3_variables: "temperature, DO and pH present for at least 3 ponds"
+    H4_resolution: "10-minute grid (finer than our 15-minute grid), median step 10 min"
+    H5_length: "at least 3 ponds with >= 9 months span AND >= 70% valid readings of each of DO, pH and temperature within their span"
+    H6_licence: "open (CC BY 4.0)"
+  suitability_checks_descriptive:
+    - "months with data per pond (season coverage)"
+    - "daily oxygen range (median of daily max minus min) vs our Eluru ponds"
+    - "share of readings below 2 mg/L (so the low-oxygen alert can be tested)"
+    - "depth variation (tidal exchange)"
+  if_pass: "usable ONLY as an external stress test of the Eluru-trained models, stated as salt-marsh not aquaculture"
+  if_fail: "reject; the Fish Welfare Initiative data request becomes the main route"

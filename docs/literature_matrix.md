@@ -27,3 +27,6 @@ Search date: 2026-11-13. Search was limited and not exhaustive.
 1. Read the full text of rows 1, 6, 9 and 10 first.
 2. Repeat the search on Google Scholar, Scopus and arXiv with several phrasings; record queries and dates.
 3. Add the dataset paper or documentation for the Fish Welfare Initiative data once its licence is clarified.
+
+## Correction (2026-11-14)
+AquaSustain-Bench (Zenodo 10.5281/zenodo.21249767) and AquaSense (Mendeley fhnb2h7hyc) were checked: their released sensor data is **synthetic** (see docs/external_data_decision.md). Do not cite either as evidence about real ponds. Row 12 and earlier mentions of AquaSustain in conversation were based on descriptions, not on the files.
