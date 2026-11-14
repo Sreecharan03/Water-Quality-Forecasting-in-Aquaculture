@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pond Water Forecast</title>
+  <meta name="description" content="See what your pond's oxygen, pH and water temperature may do over the next few hours, in plain words.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#results">Skip to results</a>
+
+  <header class="top">
+    <div class="wrap">
+      <h1>Pond Water Forecast</h1>
+      <p class="lead">See what your pond's oxygen, acidity and water temperature may do over the next few hours, explained in plain words.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="notice" role="note"><strong>Please read:</strong> this is a research demonstration. It can be wrong. It does not replace your own sensors, alarms or judgement.</p>
+
+    <section class="card" aria-labelledby="step1">
+      <h2 id="step1"><span class="num">1</span> Tell us about your pond</h2>
+
+      <label class="field">
+        <span class="key">Pond name</span>
+        <input id="pondName" type="text" maxlength="60" value="My pond" autocomplete="off">
+        <span class="hint">Only used as a heading on your results.</span>
+      </label>
+
+      <div class="field">
+        <span class="key">Your readings</span>
+        <div class="tabs" role="tablist" aria-label="How do you want to give your readings?">
+          <button role="tab" id="tabPaste" aria-selected="true" aria-controls="panelPaste" class="tab on">Paste from a spreadsheet</button>
+          <button role="tab" id="tabFile" aria-selected="false" aria-controls="panelFile" class="tab">Upload a file</button>
+          <button role="tab" id="tabExample" aria-selected="false" aria-controls="panelExample" class="tab">Try an example</button>
+        </div>
+
+        <div id="panelPaste" role="tabpanel" aria-labelledby="tabPaste">
+          <textarea id="pasteBox" rows="8" spellcheck="false" placeholder="time, oxygen, pH, temperature&#10;2026-01-10 05:00, 3.1, 8.05, 25.2&#10;2026-01-10 05:15, 3.0, 8.04, 25.1&#10;..."></textarea>
+          <p class="hint">Copy the columns from your spreadsheet and paste them here, including the top row with the column names.</p>
+        </div>
+        <div id="panelFile" role="tabpanel" aria-labelledby="tabFile" hidden>
+          <input id="fileBox" type="file" accept=".csv,.txt,.tsv">
+          <p class="hint" id="fileName">No file chosen. We accept CSV files exported from a spreadsheet or your sensor app.</p>
+        </div>
+        <div id="panelExample" role="tabpanel" aria-labelledby="tabExample" hidden>
+          <p>We will fill in about 30 hours of <strong>made-up numbers</strong> for a pretend pond, so you can see how the results look. They are not real measurements.</p>
+          <button type="button" class="btn ghost" id="loadExample">Use the example</button>
+        </div>
+      </div>
+
+      <div class="help">
+        <h3>What do I need to give?</h3>
+        <dl class="kv">
+          <div><dt>Time</dt><dd>When the reading was taken, in your local time. Example: <code>2026-01-10 05:15</code></dd></div>
+          <div><dt>Oxygen</dt><dd>Dissolved oxygen in the water, in mg/L. Fish breathe this. Example: <code>3.1</code></dd></div>
+          <div><dt>pH</dt><dd>How acidic or basic the water is. Example: <code>8.05</code></dd></div>
+          <div><dt>Temperature</dt><dd>Water temperature in °C. Example: <code>25.2</code></dd></div>
+          <div><dt>How much</dt><dd>At least <strong>25 hours</strong> of readings, ideally one every 15 minutes, ending with the latest reading.</dd></div>
+        </dl>
+        <a class="link" href="/api/template" download>Download a blank template</a>
+      </div>
+
+      <button type="button" class="btn" id="go">Get my forecast</button>
+      <p class="error" id="problem" role="alert" hidden></p>
+    </section>
+
+    <div id="results" tabindex="-1" hidden>
+      <section class="card" aria-labelledby="step2">
+        <h2 id="step2"><span class="num">2</span> What we found in your readings</h2>
+        <dl class="kv" id="summary"></dl>
+        <ul class="notes" id="issues"></ul>
+      </section>
+
+      <section class="card" aria-labelledby="step3">
+        <h2 id="step3"><span class="num">3</span> <span id="resultsTitle">Your forecast</span></h2>
+        <p class="muted" id="madeAt"></p>
+
+        <h3>Right now</h3>
+        <dl class="kv big" id="latest"></dl>
+
+        <div id="alertCard"></div>
+        <div id="forecastCards"></div>
+      </section>
+
+      <section class="card" aria-labelledby="trust">
+        <h2 id="trust">How much can I trust this?</h2>
+        <ul class="plain-list" id="evidence"></ul>
+        <h3>Things to keep in mind</h3>
+        <ul class="plain-list" id="limits"></ul>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Words we use</h2>
+      <details><summary>What is dissolved oxygen (mg/L)?</summary><p>The amount of oxygen mixed in the water, measured in milligrams per litre. Fish and other pond life breathe it. It usually falls at night and rises in daylight.</p></details>
+      <details><summary>What is pH?</summary><p>A number that says how acidic or basic the water is. Many ponds sit between about 7 and 9. It also moves up and down through the day.</p></details>
+      <details><summary>What does "likely between" mean?</summary><p>It is a range. In our tests on ponds the computer had never seen, the real value fell inside a range like this about 9 times out of 10.</p></details>
+      <details><summary>What is "a plain guess"?</summary><p>Repeating the latest reading ("same as now") or the reading from the same time yesterday. We always compare the computer model with these, and we tell you when the plain guess is just as good.</p></details>
+      <details><summary>What is the "chance of very low oxygen"?</summary><p>The computer's estimate of how likely oxygen is to drop below 2 mg/L, a very low level, at some point in the next hours. It is experimental: it spots risky situations better than simple rules, but it also raises false alarms.</p></details>
+      <details><summary>Why are some reasons shown with a warning?</summary><p>For each answer we show the three biggest reasons the model gave. When those reasons changed from test to test, we say so and ask you to treat them as a rough guide.</p></details>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p id="disclaimer"></p>
+      <p class="muted">Pond Water Forecast, research demonstration. Model version <span id="ver">-</span>.</p>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

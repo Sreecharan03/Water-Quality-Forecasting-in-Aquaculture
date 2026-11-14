@@ -18,11 +18,13 @@ Result: method replicates only weakly (3 of 9 forecast cells pass, but different
 ## Phases 7 and 8: explanations (done, committed under 'complete all the phases')
 SHAP computed for 11 cells; **9 of 11 explanations validated** by pre-registered stability and faithfulness tests (not validated: Eluru oxygen 15 min, salt-marsh temperature 30 min). Alert explanations validated in all three windows. Review packs: docs/phases/PHASE_07.md and PHASE_08.md.
 
-## Next (planned order)
-- Phase 9: app with simple-name inputs (docs/ui_input_spec.md).
-- Phase 10: serving core (input validation, abstain, ranges, alert, explanations, versioned models, drift monitor).
-- **Phase 11: sealed final test, run ONCE. I will stop and ask you to confirm before running it.**
+## Phases 9 and 10: the app and the serving core (done, committed under 'complete all the phases'; NOT deployed publicly)
+Plain-language FastAPI + HTML/CSS/JS app; honest refusals (too little history, stuck sensor, far outside the training range); exact train/serve parity (a real skew was found and fixed); 74 tests pass on Modal. Review packs: docs/phases/PHASE_09.md and PHASE_10.md. How to run: docs/app_runbook.md.
+
+## Next
+- **Phase 11: sealed final test, run ONCE. I will not run it until you confirm.**
 - Phase 12: thesis and viva material.
+- Still open: Fish Welfare Initiative reply, literature full-text reading, Modal billing check, independent paper review, public deployment decision.
 
 ## Phase 1b: external data (done)
 - AquaSustain-Bench and AquaSense: REJECTED, released data is synthetic (docs/external_data_decision.md).

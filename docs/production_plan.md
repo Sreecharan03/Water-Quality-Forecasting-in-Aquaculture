@@ -9,7 +9,9 @@
 | Honest baselines, per-cell model choice, ranges, alert | Done, validation-side (Phases 5 to 6b) |
 | Evidence breadth | **Not met**: 2 months, 1 region, 13 development ponds, cool season only |
 | Alert quality | **Not met** (see Phase 6b: not better than a simple rule at raising alarms) |
-| Serving, monitoring, CI, rollback | **Not built yet** |
+| Serving core: input checks, refusals, versioned bundle with hashes, train/serve parity test, rollback procedure | **Built** (Phase 10); not deployed publicly |
+| CI workflow | Written; not yet seen running on GitHub |
+| Live drift monitoring | **Not built**: only the training ranges and a runbook proposal exist |
 
 ## A. Evidence gates (cannot be passed by coding; need data and time)
 | Gate | Pass condition |

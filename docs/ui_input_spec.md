@@ -1,3 +1,5 @@
+> **Superseded (2026-11-14):** the built app (Phase 9) takes the owner's own readings (pasted or uploaded) instead of replaying dataset days. The wording rules below still apply. See docs/phases/PHASE_09.md.
+
 # UI input and output wording spec (for Phase 9)
 
 Rule: no jargon on the main screen. Every box has a plain label, a one-line help text, and a safe default. Choices come from drop-downs of values that really exist in the data, so the student can never type something invalid.
