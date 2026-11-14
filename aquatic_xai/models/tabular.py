@@ -31,3 +31,11 @@ def fit_predict(algo: str, params: dict, seed: int, X_train: np.ndarray, y_train
     m = make_model(algo, params, seed)
     m.fit(X_train, y_train)
     return np.asarray(m.predict(X_eval), dtype=float)
+
+
+def fit_predict_proba(params: dict, seed: int, X_train: np.ndarray, y_train: np.ndarray, X_eval: np.ndarray) -> np.ndarray:
+    """LightGBM classifier with the same fixed settings as the regressors; returns P(event)."""
+    import lightgbm as lgb
+    m = lgb.LGBMClassifier(**params, random_state=seed, n_jobs=2, verbose=-1)
+    m.fit(X_train, y_train.astype(int))
+    return np.asarray(m.predict_proba(X_eval)[:, 1], dtype=float)

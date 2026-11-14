@@ -1,0 +1,27 @@
+# Phase 6 contract, written BEFORE any Phase 6 model was run. Validation-side only; one round; no tuning.
+# Only descriptive prevalence counts (dev_train + dev_val, no model) informed the alert threshold.
+conformal:
+  source_experiment: exp-1e0c9c9e8164     # Phase 5b predictions (absolute errors per row) are reused; no new fitting
+  alpha: 0.10                             # target: ranges that contain the truth 90% of the time
+  chosen_predictor:                       # per-cell centre of the range = the Phase 5b recommendation (blind anchored model or best simple guess)
+    DO:   {1: anch_blind, 4: anch_blind, 24: anch_blind}
+    pH:   {1: persistence, 4: persistence, 24: seasonal_naive}
+    Temp: {1: persistence, 4: anch_blind, 24: anch_blind}
+  calibration: "for target fold k, calibration rows = unseen-pond validation rows of the OTHER three folds (disjoint ponds)"
+  day_hours: [6, 18]                      # IST; day = 06:00-18:00, night otherwise (conditional-coverage check and day/night variant)
+  success: "pooled coverage on unseen ponds in [0.87, 0.93] for the plain variant; conditional check: coverage >= 0.85 in day, night and low-value strata, else the app uses the day/night variant"
+  bootstrap: {B: 2000, seed: 20261113, level: 95}
+alerts:
+  threshold_mg_l: 2.0                     # severe hypoxia; 3 mg/L would fire constantly (21% of readings) so is not used
+  windows: {1h: 4, 3h: 12, 6h: 24}        # event = any valid DO reading below the threshold in (t, t+window]
+  min_valid_fraction: 0.5                 # a window with no event counts as no-event only if >= 50% of its slots have a reading
+  model: "LightGBM classifier, fixed Phase 5 settings, seeds [0,1,2], quality-blind features + daily-v1 + yesterday-window-minimum"
+  seeds: [0, 1, 2]
+  regimes: [dev_future_seen_ponds, dev_future_unseen_fold0, dev_future_unseen_fold1, dev_future_unseen_fold2, dev_future_unseen_fold3]
+  baselines: ["current level (lower DO = higher risk)", "trend extrapolation (DO now + hourly slope x window)", "same window yesterday (minimum DO in that window one day earlier)"]
+  success: "per window, unseen ponds: lower end of the 99% interval of (model average-precision minus each baseline average-precision) > 0 for ALL THREE baselines"
+  operating_point: 0.30                   # fixed alert probability for episode-level reporting (6 h window only); not tuned
+  episode: {quiet_slots: 24, lead_min_slots: 4, lead_max_slots: 24}   # onset = first reading below threshold after 6 h with none; caught if an alert is raised 1-6 h before
+  episode_baseline_rule: "each baseline is given the strictest alert level that still catches at least as many episodes as the model (favours the baseline)"
+  bootstrap: {B: 1000, seed: 20261113, level: 99}
+  episode_note: "episode-level numbers are descriptive (no interval); the pass/fail rule uses average precision only"
