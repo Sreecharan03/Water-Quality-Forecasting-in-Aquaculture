@@ -1,0 +1,18 @@
+# Phase 6b contract, written BEFORE running. Validation-side only; one round; no new model fitting (reuses Phase 6 alert predictions).
+# Problem found in Phase 6: probabilities not calibrated, and at the fixed level P>=0.30 the 6 h alert raised a false alarm on 60% of
+# pond-days, no better than the simple rule "same window yesterday".
+alerts_calibration:
+  source_experiment: exp-bad07bab4b89
+  calibration_method: "isotonic regression (monotone, so the ranking of risk is unchanged) fitted on the OTHER three pond groups' predictions"
+  windows: {1h: 4, 3h: 12, 6h: 24}
+  calibration_success: "pooled unseen Brier score of the calibrated probabilities is lower than the raw one in every window, and every reliability bin with n >= 100 has |predicted - observed| <= 10 points"
+decision_rule:
+  window: 24                              # 6 h; episodes are defined for this window only
+  target_episode_recall: 0.80             # alert level = strictest level that catches >= 80% of episodes on the OTHER three pond groups
+  threshold_choice: "chosen on the calibration pond groups only; applied unchanged to the held-out pond group"
+  same_rule_for_baseline: "the baseline 'same window yesterday' gets its alert level chosen the same way (fair comparison)"
+  episode: {quiet_slots: 24, lead_min_slots: 4, lead_max_slots: 24}
+  success: "pooled over the 4 held-out pond groups: (false-alarm pond-day share of model) minus (that of the baseline) has a 99% blocked-bootstrap upper bound < 0, AND model episode recall >= baseline episode recall - 0.05"
+  secondary_report: "baseline given the strictest level matching the model's realised recall on the held-out data (favours the baseline)"
+  bootstrap: {B: 2000, seed: 20261113, level: 99}
+  if_fail: "the alert stays marked experimental; no second round"

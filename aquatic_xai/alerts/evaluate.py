@@ -54,7 +54,7 @@ def episode_stats(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, l
     days = rows.groupby(["pond", "block_day"]).ngroups
     nfa = fa.groupby(["pond", "block_day"]).ngroups
     return {"episodes": n_ep, "caught": caught, "excluded_no_origins": excluded, "recall": caught / n_ep if n_ep else float("nan"),
-            "median_lead_h": float(np.median(leads)) if leads else float("nan"),
+            "median_lead_h": float(np.median(leads)) if leads else float("nan"), "leads": [float(x) for x in leads],
             "false_alarm_pond_days": nfa, "pond_days": days, "false_alarm_day_share": nfa / days if days else float("nan")}
 
 
