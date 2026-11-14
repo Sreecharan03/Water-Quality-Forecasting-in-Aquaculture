@@ -28,26 +28,26 @@ def _forward_min(full: pd.Series, W: int) -> tuple[pd.Series, pd.Series]:
     return mn, nv
 
 
-def window_labels(pond_table: pd.DataFrame, W: int, thr: float) -> tuple[np.ndarray, np.ndarray]:
+def window_labels(pond_table: pd.DataFrame, W: int, thr: float, day: int = DAY) -> tuple[np.ndarray, np.ndarray]:
     """Returns (label as float: 1/0/NaN, yesterday-window minimum) aligned to pond_table rows."""
     full = _full(pond_table)
     mn, nv = _forward_min(full, W)
     event = mn < thr
     known_no = (~event) & (nv >= int(np.ceil(W / 2)))
     lab = pd.Series(np.where(event, 1.0, np.where(known_no, 0.0, np.nan)), index=full.index)
-    yday = mn.shift(DAY)                              # window one day earlier: only indices <= g - 72
+    yday = mn.shift(day)                              # window one day earlier: only indices <= g - (day - W)
     g = pond_table["grid_idx"].to_numpy()
     return lab.reindex(g).to_numpy(), yday.reindex(g).to_numpy()
 
 
-def add_alert_columns(T: pd.DataFrame, windows: dict, thr: float) -> pd.DataFrame:
+def add_alert_columns(T: pd.DataFrame, windows: dict, thr: float, day: int = DAY) -> pd.DataFrame:
     """Adds lab_W{W} (a target, NOT a feature) and ydaymin_W{W} (a feature) for every window, pond by pond."""
     cols = {}
     for W in windows.values():
         lab, yd = np.full(len(T), np.nan), np.full(len(T), np.nan)
         for _, g in T.groupby("pond", sort=False):
             pos = T.index.get_indexer(g.index)
-            lab[pos], yd[pos] = window_labels(g, W, thr)
+            lab[pos], yd[pos] = window_labels(g, W, thr, day)
         cols[f"lab_W{W}"], cols[f"ydaymin_W{W}"] = lab, yd
     return pd.concat([T, pd.DataFrame(cols, index=T.index)], axis=1)
 

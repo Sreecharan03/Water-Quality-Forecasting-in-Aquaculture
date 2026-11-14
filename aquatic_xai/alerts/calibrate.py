@@ -22,10 +22,10 @@ def false_alarm_flags(rows: pd.DataFrame, score: str, thresh: float) -> pd.DataF
     return r.groupby(["pond", "block_day"], as_index=False)["_fa"].max().rename(columns={"_fa": "fa"})
 
 
-def choose_level(cal_rows: pd.DataFrame, onsets: dict, score: str, target_recall: float, lead_min: int, lead_max: int) -> tuple[float, dict]:
+def choose_level(cal_rows: pd.DataFrame, onsets: dict, score: str, target_recall: float, lead_min: int, lead_max: int, step_h: float = 0.25) -> tuple[float, dict]:
     """Alert level chosen on calibration rows only."""
-    return match_recall_threshold(cal_rows, onsets, score, target_recall, lead_min, lead_max)
+    return match_recall_threshold(cal_rows, onsets, score, target_recall, lead_min, lead_max, step_h)
 
 
-def evaluate_level(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, lead_min: int, lead_max: int) -> dict:
-    return episode_stats(rows, onsets, score, thresh, lead_min, lead_max)
+def evaluate_level(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, lead_min: int, lead_max: int, step_h: float = 0.25) -> dict:
+    return episode_stats(rows, onsets, score, thresh, lead_min, lead_max, step_h)

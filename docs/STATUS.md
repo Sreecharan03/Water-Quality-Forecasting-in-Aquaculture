@@ -12,7 +12,10 @@ Phases 0 to 5.
 ## Phase 6b (approved 2026-11-14, "push the waiting work")
 Alert calibration and alert level. Calibration passes in 2 of 3 windows (6 h fails). The pre-registered decision rule FAILED: the model's false alarms (68% of pond-days) are not lower than 'same window yesterday' (58%). The alert stays experimental; no second round. Review pack: docs/phases/PHASE_06b.md.
 
-## Phase 1b: external data (in progress, on this branch)
+## Phase 1b-R: replication on salt-marsh ponds (approved 2026-11-14, committed)
+Result: method replicates only weakly (3 of 9 forecast cells pass, but different cells from Eluru: temperature yes, oxygen no); alert rules fail (validation window is winter, so very few low-oxygen events). Review pack: docs/phases/PHASE_01b_R.md.
+
+## Phase 1b: external data (done)
 - AquaSustain-Bench and AquaSense: REJECTED, released data is synthetic (docs/external_data_decision.md).
 - BCO-DMO salt-marsh ponds: gate passed as an out-of-domain test only. Proposed use: replicate the frozen method on its own split (needs your approval of the plan), plus a descriptive zero-shot transfer.
 - Open: request more data from the Fish Welfare Initiative.

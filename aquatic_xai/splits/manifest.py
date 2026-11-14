@@ -11,7 +11,15 @@ from aquatic_xai.splits.grouped import assign_folds, pick_sealed
 from aquatic_xai.splits.temporal import choose_cutoffs, window_labels
 
 SPLIT_CODE_VERSION = "split-v1"
-META_COLS = ["pond", "grid_idx", "ts_ist", "is_warmup", "ts_target_h24"]
+META_COLS = ["pond", "grid_idx", "ts_ist", "is_warmup", "ts_target_h24"]   # default long horizon: 24 steps
+
+
+def _meta_cols(cfg: dict) -> list[str]:
+    return ["pond", "grid_idx", "ts_ist", "is_warmup", f"ts_target_h{cfg.get('long_horizon_steps', 24)}"]
+
+
+def _tcol(cfg: dict) -> str:
+    return f"ts_target_h{cfg.get('long_horizon_steps', 24)}"
 
 
 def split_version(feature_version: str, cfg: dict) -> str:
@@ -24,7 +32,7 @@ def build_assignments(table: pd.DataFrame, cfg: dict) -> tuple[pd.DataFrame, dic
     emb = pd.Timedelta(minutes=cfg["embargo_steps"] * cfg["nominal_interval_min"])
     if cfg["embargo_steps"] < cfg["max_lookback_steps"] + cfg["max_horizon_steps"]:
         raise ValueError("embargo shorter than max lookback + max horizon")
-    a = table[META_COLS].copy()
+    a = table[_meta_cols(cfg)].copy().rename(columns={_tcol(cfg): "ts_target_h24"})   # internal name kept for the shared code
     a["usable"] = (~table["is_warmup"]) & table[cfg["usable_requires"]].notna().all(axis=1)
     t1, t2 = choose_cutoffs(a.loc[~a["is_warmup"], "ts_ist"], cfg["fractions"])
     a["window"] = window_labels(a["ts_ist"], t1, t2, emb)

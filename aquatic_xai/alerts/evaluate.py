@@ -33,7 +33,7 @@ def ap_ci(d: pd.DataFrame, y: str, scores: list[str], B: int, seed: int, level: 
             "diff": {s: (pt[scores[0]] - pt[s], float(np.percentile(v, lo)), float(np.percentile(v, hi))) for s, v in diffs.items()}}
 
 
-def episode_stats(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, lead_min: int, lead_max: int) -> dict:
+def episode_stats(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, lead_min: int, lead_max: int, step_h: float = 0.25) -> dict:
     """rows: evaluation rows (pond, grid_idx, block_day, y, score). onsets: pond -> onset grid indices.
     Caught = some origin lead_min..lead_max slots before the onset has score >= thresh."""
     n_ep = caught = excluded = 0
@@ -49,7 +49,7 @@ def episode_stats(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, l
             fired = cand & (sc >= thresh)
             if fired.any():
                 caught += 1
-                leads.append((on - gi[fired].min()) / 4.0)
+                leads.append((on - gi[fired].min()) * step_h)
     fa = rows[(rows["y"] == 0) & (rows[score] >= thresh)]
     days = rows.groupby(["pond", "block_day"]).ngroups
     nfa = fa.groupby(["pond", "block_day"]).ngroups
@@ -58,12 +58,12 @@ def episode_stats(rows: pd.DataFrame, onsets: dict, score: str, thresh: float, l
             "false_alarm_pond_days": nfa, "pond_days": days, "false_alarm_day_share": nfa / days if days else float("nan")}
 
 
-def match_recall_threshold(rows: pd.DataFrame, onsets: dict, score: str, target_recall: float, lead_min: int, lead_max: int):
+def match_recall_threshold(rows: pd.DataFrame, onsets: dict, score: str, target_recall: float, lead_min: int, lead_max: int, step_h: float = 0.25):
     """Strictest threshold (fewest alerts) whose episode recall is >= target; if impossible, the loosest one."""
     qs = np.unique(np.quantile(rows[score].to_numpy(dtype=float), np.linspace(0, 1, 201)))
     best = None
     for t in qs[::-1]:
-        st = episode_stats(rows, onsets, score, t, lead_min, lead_max)
+        st = episode_stats(rows, onsets, score, t, lead_min, lead_max, step_h)
         best = (float(t), st)
         if st["recall"] >= target_recall:
             break

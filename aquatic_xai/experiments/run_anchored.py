@@ -14,7 +14,7 @@ from aquatic_xai.splits.manifest import regime_masks
 
 
 def run_task_anchored(T: pd.DataFrame, info: dict, cv_folds: int, regime_name: str, var: str, h: int, base_specs: list[dict],
-                      daily: list[dict], lgbm_params: dict, acfg: dict, seasonal_steps: int, low_q: float):
+                      daily: list[dict], lgbm_params: dict, acfg: dict, seasonal_steps: int, low_q: float, versions: tuple = (False, True)):
     t0 = time.time()
     regime = find_regime(info, cv_folds, regime_name)
     tr_mask, ev_mask = regime_masks(T, info, regime)
@@ -32,7 +32,7 @@ def run_task_anchored(T: pd.DataFrame, info: dict, cv_folds: int, regime_name: s
     out["ae_persistence"] = np.abs(persistence(ev, var) - y)
     out["ae_seasonal_naive"] = np.abs(seasonal_naive(T, ev, var, h, seasonal_steps) - y)
     metrics, seed_mae = [], {}
-    for aware in (False, True):
+    for aware in versions:
         name = "anch_aware" if aware else "anch_blind"
         cols = anchored_columns(base_specs, daily, var, h, aware, kind)
         Xtr, Xev = train[cols].to_numpy(dtype=float), ev[cols].to_numpy(dtype=float)
