@@ -1,0 +1,44 @@
+# Phase 7 (SHAP explanations) and Phase 8 (explanation validation) contract. Written BEFORE any SHAP value was computed.
+# Validation-side only. Models are the SAME anchored LightGBM models evaluated earlier (quality-blind, fixed settings, seeds 0 1 2). No tuning.
+# The sealed ponds and test windows are never used.
+method:
+  attribution: "TreeSHAP via LightGBM pred_contrib=True (exact for trees); forecasts explain the learned CORRECTION to the anchor (anchor = same-as-now or same-time-yesterday); alerts explain the log-odds"
+  features: "the model's own inputs (history, rolling, time, daily-pattern, and anchor-minus-now for 6 h) in feature FAMILIES for summaries"
+  families:
+    history: "current value and lags"
+    rolling: "trailing mean, min, max, std, slope"
+    daily: "yesterday's value at the target time, yesterday's same-origin value, trailing 24 h (or 1-day) mean, min, max"
+    time: "hour sin and cos"
+    anchor_gap: "anchor minus current value (6 h only)"
+    quality: "none (blind models)"
+cells:                                    # only cells where a model was shown to help (Phase 5b, Phase 6, Phase 1b-R)
+  eluru:
+    forecasts: {DO: [1, 4, 24], Temp: [4, 24]}
+    alerts_windows_steps: [4, 12, 24]     # 1 h, 3 h, 6 h
+  salt_marsh:
+    forecasts: {Temp: [1, 2, 12]}
+    alerts_windows_steps: []              # alert rules failed and the window is underpowered: not explained
+regimes:
+  main: dev_future_seen_ponds             # train on all development ponds' training window; explain validation-window rows (future days)
+  pond_stability: [dev_future_unseen_fold0, dev_future_unseen_fold1, dev_future_unseen_fold2, dev_future_unseen_fold3]
+seeds: [0, 1, 2]
+shap_rows: "all evaluation rows of the regime (validation window only)"
+phase8_tests:                             # a cell's explanation is 'validated' only if ALL of E1 to E4 pass
+  E1_seed_stability: "minimum pairwise Spearman correlation of mean absolute SHAP across the 3 seeds >= 0.90 (main regime)"
+  E2_pond_stability: "mean pairwise Spearman across the 4 held-out pond-group regimes >= 0.70 AND the top-5 features of any two groups share at least 3 on average"
+  E3_time_stability: "Spearman between the first and second half of the validation window >= 0.70 (main regime)"
+  E4_faithfulness:
+    method: "choose the top-5 features by mean |SHAP| on a fixed random subsample of up to 5000 TRAINING rows (so the choice does not see the evaluation rows); replace them by their training medians in the evaluation rows"
+    compare: "error increase when removing these 5 vs when removing 5 randomly chosen features (mean over 50 draws, seed 20261113), same rows"
+    metric: "forecasts: absolute error of the final forecast (anchor + correction); alerts: log-loss (additive per row)"
+    pass: "per regime, the lower end of the 99% blocked-bootstrap interval (blocks = pond x day) of (error with top-5 removed minus error with random-5 removed) is > 0, in the main regime AND in at least 3 of the 4 pond-group regimes"
+  bootstrap: {B: 2000, seed: 20261113, level: 99}
+expectations:                             # descriptive hypotheses written before looking; reported as met or not met, NOT gating
+  X1: "at 6 h the daily-pattern family carries at least 25% of total mean |SHAP| for oxygen and for temperature"
+  X2: "at the shortest horizon the history family carries at least 50% of total mean |SHAP|"
+  X3: "for temperature the time family (hour of day) is among the top 3 families at every horizon"
+reporting:
+  - "every cell is reported, validated or not; no re-running with other features removed"
+  - "SHAP values are an explanation of the model, not proof of a physical cause; the report must say so"
+  - "no raw data and no per-row values are published; only aggregates and a few anonymised example rows for alerts"
+out_of_scope: ["other explanation methods (LIME, permutation importance) except the random-feature deletion control", "any use of the sealed data", "the app (Phase 9)"]

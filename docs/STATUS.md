@@ -15,6 +15,15 @@ Alert calibration and alert level. Calibration passes in 2 of 3 windows (6 h fai
 ## Phase 1b-R: replication on salt-marsh ponds (approved 2026-11-14, committed)
 Result: method replicates only weakly (3 of 9 forecast cells pass, but different cells from Eluru: temperature yes, oxygen no); alert rules fail (validation window is winter, so very few low-oxygen events). Review pack: docs/phases/PHASE_01b_R.md.
 
+## Phases 7 and 8: explanations (done, committed under 'complete all the phases')
+SHAP computed for 11 cells; **9 of 11 explanations validated** by pre-registered stability and faithfulness tests (not validated: Eluru oxygen 15 min, salt-marsh temperature 30 min). Alert explanations validated in all three windows. Review packs: docs/phases/PHASE_07.md and PHASE_08.md.
+
+## Next (planned order)
+- Phase 9: app with simple-name inputs (docs/ui_input_spec.md).
+- Phase 10: serving core (input validation, abstain, ranges, alert, explanations, versioned models, drift monitor).
+- **Phase 11: sealed final test, run ONCE. I will stop and ask you to confirm before running it.**
+- Phase 12: thesis and viva material.
+
 ## Phase 1b: external data (done)
 - AquaSustain-Bench and AquaSense: REJECTED, released data is synthetic (docs/external_data_decision.md).
 - BCO-DMO salt-marsh ponds: gate passed as an out-of-domain test only. Proposed use: replicate the frozen method on its own split (needs your approval of the plan), plus a descriptive zero-shot transfer.
