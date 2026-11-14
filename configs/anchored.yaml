@@ -1,0 +1,11 @@
+# Phase 5b: ONE anchored-residual LightGBM, two versions (quality-blind / quality-aware). Settings reuse configs/models.yaml (no tuning).
+# Written BEFORE running. One round only; if a cell fails, the app uses the best simple guess for that cell.
+anchored:
+  anchors: {1: persistence, 4: persistence, 24: yesterday}
+  seeds: [0, 1, 2]
+  regimes: [dev_future_seen_ponds, dev_future_unseen_fold0, dev_future_unseen_fold1, dev_future_unseen_fold2, dev_future_unseen_fold3]
+  ci_level: 99                        # 9 comparisons per version -> 99% intervals
+  bootstrap: {B: 2000, seed: 20261113}
+  leakage: {samples_per_pond: 40, seed: 20261020}
+  success_rule: "per (target, horizon) on unseen ponds: lower end of the 99% interval of improvement over BOTH 'same as now' and 'same time yesterday' is > 0"
+  recommendation_rule: "use quality-blind if it passes; use quality-aware only if it passes AND is clearly better than blind (99% interval of aware-minus-blind MAE < 0); else best simple guess"

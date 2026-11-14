@@ -14,24 +14,24 @@ def _resample(n_blocks: int, B: int, seed: int) -> np.ndarray:
     return np.random.RandomState(seed).randint(0, n_blocks, size=(B, n_blocks))
 
 
-def mean_ci(d: pd.DataFrame, col: str, B: int = 2000, seed: int = 0) -> tuple[float, float, float, int]:
+def mean_ci(d: pd.DataFrame, col: str, B: int = 2000, seed: int = 0, level: float = 95.0) -> tuple[float, float, float, int]:
     d = d.dropna(subset=[col])
     if d.empty:
         return (np.nan,) * 3 + (0,)
     b = _blocks(d, [col])
     idx = _resample(len(b), B, seed)
     stats = b[idx, 0].sum(1) / b[idx, 1].sum(1)
-    return float(b[:, 0].sum() / b[:, 1].sum()), float(np.percentile(stats, 2.5)), float(np.percentile(stats, 97.5)), int(len(d))
+    return float(b[:, 0].sum() / b[:, 1].sum()), float(np.percentile(stats, (100 - level) / 2)), float(np.percentile(stats, 100 - (100 - level) / 2)), int(len(d))
 
 
-def diff_ci(d: pd.DataFrame, a: str, b: str, B: int = 2000, seed: int = 0) -> tuple[float, float, float, int]:
+def diff_ci(d: pd.DataFrame, a: str, b: str, B: int = 2000, seed: int = 0, level: float = 95.0) -> tuple[float, float, float, int]:
     """Mean of (a - b) over common rows. Negative = a has the smaller error."""
     d = d.dropna(subset=[a, b]).copy()
     d["_diff"] = d[a] - d[b]
-    return mean_ci(d, "_diff", B, seed)
+    return mean_ci(d, "_diff", B, seed, level)
 
 
-def improvement_ci(d: pd.DataFrame, model: str, ref: str, B: int = 2000, seed: int = 0) -> tuple[float, float, float, int]:
+def improvement_ci(d: pd.DataFrame, model: str, ref: str, B: int = 2000, seed: int = 0, level: float = 95.0) -> tuple[float, float, float, int]:
     """1 - sum|err_model| / sum|err_ref| over common rows; positive = model is better than ref."""
     d = d.dropna(subset=[model, ref])
     if d.empty:
@@ -39,7 +39,7 @@ def improvement_ci(d: pd.DataFrame, model: str, ref: str, B: int = 2000, seed: i
     b = _blocks(d, [model, ref])
     idx = _resample(len(b), B, seed)
     stats = 1 - b[idx, 0].sum(1) / b[idx, 1].sum(1)
-    return float(1 - b[:, 0].sum() / b[:, 1].sum()), float(np.percentile(stats, 2.5)), float(np.percentile(stats, 97.5)), int(len(d))
+    return float(1 - b[:, 0].sum() / b[:, 1].sum()), float(np.percentile(stats, (100 - level) / 2)), float(np.percentile(stats, 100 - (100 - level) / 2)), int(len(d))
 
 
 def fmt(est_lo_hi_n, pct: bool = False, digits: int = 3) -> str:
