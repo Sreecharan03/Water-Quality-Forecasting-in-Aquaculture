@@ -121,7 +121,7 @@ def build_bundle(git_sha: str, force: bool = False) -> dict:
 
 
 @app.function(image=image, volumes=VOLUMES, timeout=1800, cpu=2.0)
-def verify_service(git_sha: str) -> dict:
+def verify_service(git_sha: str, bundle: str = "final_v1") -> dict:
     import time
     import numpy as np
     import pandas as pd
@@ -131,9 +131,10 @@ def verify_service(git_sha: str) -> dict:
     from aquatic_xai.serving.engine import Engine
     artifact_vol.reload()
     sv, fv = ds_versions("eluru")
-    res = {"bundle_integrity_hashes_match": verify_bundle(BUNDLE)}
-    eng = Engine(BUNDLE)
-    client = TestClient(create_app(str(BUNDLE)))
+    bpath = Path(ARTIFACT_MOUNT, "models", bundle)
+    res = {"bundle": bundle, "bundle_integrity_hashes_match": verify_bundle(bpath)}
+    eng = Engine(bpath)
+    client = TestClient(create_app(str(bpath)))
     # ---- train/serve parity: the service, fed only readings, must equal the offline pipeline row for the same moment
     T, info, _ = load("eluru", sv, fv, alerts=True)
     rng = np.random.RandomState(20261114)
@@ -214,8 +215,8 @@ def tests_only(k: str = ""):
 
 
 @app.local_entrypoint()
-def verify(git_sha: str = "unknown"):
-    print("VERIFY:", json.dumps(verify_service.remote(git_sha), indent=1))
+def verify(git_sha: str = "unknown", bundle: str = "final_v1"):
+    print("VERIFY:", json.dumps(verify_service.remote(git_sha, bundle), indent=1))
 
 
 @app.function(image=image, volumes=VOLUMES, timeout=900, cpu=2.0)
@@ -354,3 +355,53 @@ def example_json() -> str:
 def save_example(path: str):
     Path(path).write_text(example_json.remote(), encoding="utf-8")
     print("saved", path)
+
+
+BUNDLE2 = Path(ARTIFACT_MOUNT, "models", "final_v2")
+
+
+@app.function(image=image, volumes=VOLUMES, timeout=1800, cpu=2.0)
+def build_v2(git_sha: str, force: bool = False) -> dict:
+    """final_v2 = final_v1 with the two 6-hour model cells that FAILED the sealed final test (oxygen, temperature) switched to the plain guess
+    'same time yesterday' (the fallback rule pre-registered in Phase 5b), and the evidence text updated to the final test. final_v1 is not touched."""
+    import shutil
+    import pandas as pd
+    from aquatic_xai.serving.bundle import verify_bundle, write_manifest
+    from aquatic_xai.uncertainty.conformal import conformal_q
+    artifact_vol.reload()
+    if force and BUNDLE2.exists():
+        shutil.rmtree(BUNDLE2)
+    if (BUNDLE2 / "manifest.json").exists():
+        return {"status": "already_exists", "verified": verify_bundle(BUNDLE2)}
+    shutil.copytree(BUNDLE, BUNDLE2)
+    m = json.loads((BUNDLE2 / "manifest.json").read_text(encoding="utf-8"))
+    exp = Path(ARTIFACT_MOUNT, "experiments")
+    for key, (var, h) in {"DO_24": ("DO", 24), "Temp_24": ("Temp", 24)}.items():
+        old = m["cells"][key]
+        for f in old.get("files", []):
+            (BUNDLE2 / "models" / f).unlink()
+        F = pd.concat([pd.read_parquet(exp / PHASE5B / "preds" / f"dev_future_unseen_fold{k}__{var}__h{h}.parquet") for k in range(4)], ignore_index=True)
+        col = F["ae_seasonal_naive"].dropna()
+        m["cells"][key] = {"variable": var, "h": h, "method": "yesterday", "anchor": None, "explain_validated": True,
+                           "range": {"use": "plain", "plain": conformal_q(col.to_numpy(), 0.10), "day": 0.0, "night": 0.0},
+                           "mae_method": float(col.mean()), "mae_simple": float(min(F["ae_persistence"].mean(), col.mean()))}
+    m["bundle_version"] = "final_v2"
+    m["derived_from"] = "final_v1"
+    m["code_git_sha"] = git_sha
+    m["changes_from_v1"] = ["Oxygen 6 h and temperature 6 h: trained model replaced by the plain guess 'same time yesterday' (pre-registered fallback; the models failed the sealed test against that guess).",
+                            "Evidence text updated to the sealed final test. Ranges for the two switched cells are calibrated on validation errors of the plain guess and have NOT been re-tested."]
+    m["evidence"] = ["We tested the final system once on 4 ponds it had never seen, over about 10 days later than anything it learned from. It was a locked test, run one time.",
+                     "Oxygen 15 minutes ahead: the computer missed by about 0.33 mg/L; repeating the latest reading missed by 0.39. Oxygen 1 hour ahead: 0.71 against 1.12. Water temperature 1 hour ahead: 0.10 °C against 0.14. In these three cases the computer was clearly better than both plain guesses.",
+                     "At 6 hours, the reading from the same time yesterday did as well as, or better than, the computer model (oxygen 1.52 against 1.66 mg/L; temperature 0.20 against 0.25 °C). So the app simply uses yesterday's reading there, and says so. pH, and temperature 15 minutes ahead, also use plain guesses because models did not clearly beat them.",
+                     "The \"likely between\" ranges contained the real value 92% to 99% of the time in the final test. They were usually wider than needed, because the test days were calmer than the days they were calibrated on.",
+                     "The chance of very low oxygen ranked risky moments better than three simple rules for the next 3 and 6 hours (not clearly for the next hour). But its percentages were often too high, and \"High chance\" appeared on almost every day, so use it only as a hint. It is experimental.",
+                     "We tested the reasons shown for each answer for stability earlier: 9 of 11 passed; the oxygen 15-minute reasons are shown with a warning."]
+    m["limits"] = m["limits"] + ["The final test covered about 10 days and 4 ponds in one region (late January). It says little about other seasons, places or longer periods."]
+    write_manifest(BUNDLE2, m)
+    artifact_vol.commit()
+    return {"status": "written", "verified": verify_bundle(BUNDLE2), "files_removed": 6}
+
+
+@app.local_entrypoint()
+def build_v2_run(git_sha: str = "unknown", force: bool = False):
+    print("V2:", json.dumps(build_v2.remote(git_sha, force)))

@@ -15,4 +15,4 @@ import modal
 @modal.asgi_app()
 def web():
     from app.main import create_app
-    return create_app(f"{ARTIFACT_MOUNT}/models/final_v1")
+    return create_app(f"{ARTIFACT_MOUNT}/models/final_v2")

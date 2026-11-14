@@ -161,7 +161,7 @@ def analyze_final(out_dir: str = str(OUT)) -> str:
         L.append(f"| {nm[v]} | {hl[h]} | {fmt(mean_ci(d, 'ae_chosen', B, nxt(), lv))} | {fmt(mean_ci(d, 'ae_persistence', B, nxt(), lv))} | {fmt(mean_ci(d.dropna(subset=['ae_seasonal_naive']), 'ae_seasonal_naive', B, nxt(), lv))} |")
     # ---------------- ranges
     L += ["", "## B. Do the 'likely between' ranges hold? (target 90%, sealed ponds)", "",
-          "| target | ahead | coverage (99% interval) | day / night / low-value coverage | per-pond coverage (min-max) | verdict |", "|---|---|---|---|---|---|"]
+          "| target | ahead | coverage (99% interval) | day / night / low-value coverage | rows in the low-value group | per-pond coverage (min-max) | verdict |", "|---|---|---|---|---|---|---|"]
     n_r = 0
     for v, h, d, c in rangerows:
         cov = mean_ci(d, "cover", B, nxt(), lv)
@@ -169,7 +169,7 @@ def analyze_final(out_dir: str = str(OUT)) -> str:
         pp = d.groupby("pond")["cover"].mean()
         ok = 0.87 <= cov[0] <= 0.93 and np.nanmin(dd) >= 0.85
         n_r += ok
-        L.append(f"| {nm[v]} | {hl[h]} | {cov[0]*100:.1f}% [{cov[1]*100:.1f}, {cov[2]*100:.1f}] | " + " / ".join(f"{x*100:.0f}%" for x in dd) + f" | {pp.min()*100:.0f}%-{pp.max()*100:.0f}% | {'PASS' if ok else 'fail'} |")
+        L.append(f"| {nm[v]} | {hl[h]} | {cov[0]*100:.1f}% [{cov[1]*100:.1f}, {cov[2]*100:.1f}] | " + " / ".join(f"{x*100:.0f}%" for x in dd) + f" | {int(d['low'].sum())} | {pp.min()*100:.0f}%-{pp.max()*100:.0f}% | {'PASS' if ok else 'fail'} |")
     L += ["", f"**{n_r} of 9 range cells pass** (rule R1)."]
     # ---------------- alert
     L += ["", "## C. Low-oxygen chance (below 2 mg/L), sealed ponds", "",

@@ -21,8 +21,10 @@ SHAP computed for 11 cells; **9 of 11 explanations validated** by pre-registered
 ## Phases 9 and 10: the app and the serving core (done, committed under 'complete all the phases'; NOT deployed publicly)
 Plain-language FastAPI + HTML/CSS/JS app; honest refusals (too little history, stuck sensor, far outside the training range); exact train/serve parity (a real skew was found and fixed); 74 tests pass on Modal. Review packs: docs/phases/PHASE_09.md and PHASE_10.md. How to run: docs/app_runbook.md.
 
+## Phase 11: sealed final test (RUN ONCE on 2026-11-14)
+On 4 never-seen ponds (about 10 days): oxygen 15 min and 1 h and temperature 1 h clearly beat both plain guesses (3 of 5 model cells pass); at 6 hours 'same time yesterday' was as good or better (2 fail). Ranges never under-covered but were too wide; the low-oxygen percentages were too high and the 'High chance' level raised false alarms on 98% of pond-days. App bundle `final_v2` applies the pre-registered fallback to the two failed cells. Review pack: docs/phases/PHASE_11.md; full tables: docs/experiments/final_test_report.md.
+
 ## Next
-- **Phase 11: sealed final test, run ONCE. I will not run it until you confirm.**
 - Phase 12: thesis and viva material.
 - Still open: Fish Welfare Initiative reply, literature full-text reading, Modal billing check, independent paper review, public deployment decision.
 

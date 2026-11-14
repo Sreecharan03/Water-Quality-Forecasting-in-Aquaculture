@@ -5,7 +5,7 @@ For whoever runs or demonstrates the app. Plain steps; nothing here needs machin
 ## 1. Run it on your own computer
 ```
 pip install -r requirements-app.txt
-modal volume get aquatic-xai-artifacts models/final_v1 ./bundle     # one-time download of the model bundle (needs the Modal profile)
+modal volume get aquatic-xai-artifacts models/final_v2 ./bundle     # one-time download of the model bundle (needs the Modal profile)
 set AQUATIC_BUNDLE=bundle
 uvicorn app.main:app --port 8000
 ```
@@ -26,13 +26,16 @@ Open http://127.0.0.1:8000 . Click **Try an example** then **Get my forecast** t
 | "We cannot forecast this" | The app refuses instead of guessing | This is by design |
 
 ## 4. Rollback and versions
-The model bundle lives at `models/final_v1` on the Modal artifact volume, with a manifest that records the code commit, data and split versions, and a SHA-256 hash of every file. `verify_bundle` checks the hashes. To roll back, point `AQUATIC_BUNDLE` (or `modal_jobs/serve.py`) at the previous bundle folder. Never edit a bundle in place: build a new folder (`final_v2`) and switch.
+The model bundle lives at `models/final_v2` on the Modal artifact volume, with a manifest that records the code commit, data and split versions, and a SHA-256 hash of every file. `verify_bundle` checks the hashes. To roll back, point `AQUATIC_BUNDLE` (or `modal_jobs/serve.py`) at the previous bundle folder. Never edit a bundle in place: build a new folder (`final_v3`) and switch.
 
 ## 5. Checks before anyone relies on a new bundle
-`modal run -m modal_jobs.phase10::verify` must print `all_pass: true`. It checks: file hashes; that the app's numbers equal the research pipeline's for the same moment (train/serve parity); the example forecast; that an out-of-range pond is refused; and that the answer arrives in under one second.
+`modal run -m modal_jobs.phase10::verify --bundle final_v2` must print `all_pass: true`. It checks: file hashes; that the app's numbers equal the research pipeline's for the same moment (train/serve parity); the example forecast; that an out-of-range pond is refused; and that the answer arrives in under one second.
 
 ## 6. Monitoring (what to watch)
 Per request the service logs only errors and never readings. For a real deployment, add a daily job that compares incoming readings with the training range stored in the manifest (`training_range`), counts refusals by reason, and, once true outcomes arrive, tracks forecast error and range coverage. Alert the operator if refusals exceed 20% of requests or coverage falls outside 85% to 95%. These thresholds are proposals, not yet exercised on live traffic.
 
 ## 7. Limits (also shown in the app)
 Research demonstration; tested on one farm region in a cool season; the low-oxygen chance is experimental; explanations describe the model, not the pond. It never replaces sensors or alarms.
+
+## 8. Which bundle
+`final_v1` is the exact artifact that passed through the sealed final test (never edit it). `final_v2` is what the app uses: it replaces the two 6-hour model cells that failed that test with the plain guess 'same time yesterday'.

@@ -2,7 +2,7 @@
 
 M.Tech project. Forecast pond water quality (dissolved oxygen, pH, temperature) 15 minutes to 6 hours ahead, give each forecast an honest range, warn about severe low oxygen, and explain the predictions. Everything is tested on **ponds the model has never seen**.
 
-**Status (2026-11-14):** see [docs/STATUS.md](docs/STATUS.md). Phases 0 to 10 are done (the app is built but not publicly deployed). The sealed final test (Phase 11) has not been run.
+**Status (2026-11-14):** see [docs/STATUS.md](docs/STATUS.md). Phases 0 to 11 are done: the sealed final test was run once (3 of 5 model forecast cells passed; see docs/phases/PHASE_11.md). The app is built but not publicly deployed.
 
 ## Data
 Fish Welfare Initiative "Data-Campaign": 17 continuous pond CSVs, 15-minute readings, 2025-11-28 to 2026-01-30, Eluru, India. Licence unclear, so only citation and derived statistics are published. **No raw data is stored in this repository.** The dataset commit is pinned and verified by blob SHA (see `configs/data_sources.yaml`).
@@ -24,7 +24,8 @@ Strict phases, each ending with a review pack that a human approves before anyth
 | 1b | External data check and replication on salt-marsh ponds | PHASE_01b_R.md |
 | 7, 8 | SHAP explanations and their validation | PHASE_07.md, PHASE_08.md |
 | 9, 10 | The plain-language app and serving core | PHASE_09.md, PHASE_10.md |
-| 11, 12 | Sealed final test (run once), thesis and viva | planned |
+| 11 | Sealed final test (run once) | PHASE_11.md |
+| 12 | Thesis and viva | planned |
 
 ## Principles
 - No data leakage: features use only past readings; leakage tests run on real tables.
@@ -44,7 +45,7 @@ python -m modal run -m modal_jobs.phase6::main --git-sha <sha>
 Only the Modal workspace named in the project memory is used; unrelated volumes and apps are never touched.
 
 ## Not claimed
-No result here is final. Final numbers will come only from the sealed test in Phase 11.
+The sealed final test has been run once and is reported in full in docs/experiments/final_test_report.md, including the failures.
 
 ## The app
 A plain-language page for pond owners: paste or upload readings, get forecasts with ranges, a low-oxygen chance, and reasons in everyday words. FastAPI backend, plain HTML/CSS/JS front end. See [docs/app_runbook.md](docs/app_runbook.md). It is a research demonstration and not a safety device.
