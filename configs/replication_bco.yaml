@@ -1,0 +1,66 @@
+# Phase 1b-R: replicate the FROZEN method on an independent real dataset (BCO-DMO 988873, salt-marsh ponds).
+# Written BEFORE any code for this dataset was run. One round. Validation-side only. The sealed pond and test window stay locked.
+# Nothing here is tuned on the new data; every rule below is copied from Phases 4 to 6b except the grid (see "grid").
+dataset:
+  id: BCO-DMO 988873 v1 (DOI 10.26008/1912/bco-dmo.988873.1), CC BY 4.0
+  md5: 7337bc6512134cfef333f9e4edae3bf7
+  storage: "Modal volume aquatic-xai-data under external/bco-988873/ ; never committed to git"
+  ponds: [Drum, Long Reach, Ring East, Shark, White]
+  variables: {DO: "DOconc converted to mg/L", pH: pH, Temp: temperature}
+  do_conversion: "mg/L = umol/kg x 31.998 x rho / 1000, rho = (1000 + 0.8 x salinity) / 1000 kg/L (approximate)"
+  limitations_to_state: ["tidal salt marsh, not managed aquaculture", "no feeding/aeration", "temperate climate, 13 months", "converted oxygen units"]
+cleaning:
+  principle: "use the curators' quality-controlled values; missing stays missing; no interpolation, no filling"
+  do_near_zero: "values <= 0.05 mg/L are KEPT as valid (curated, calibrated against a 0% oxygen point); share per pond is reported; no second run with them masked"
+  salinity: "not a model input (White and Drum salinity is not measured); not used"
+  quality_flags: "none exist in this dataset, so only the quality-blind model is run (hypothesis H1 is NOT tested here)"
+grid:
+  nominal_interval_min: 30              # subsample the 10-minute series at exact :00 and :30 timestamps; no averaging, no interpolation
+  why: "10-minute data cannot be placed on our 15-minute grid without interpolation; 30 minutes keeps 1 h and 6 h horizons exact"
+  steps_per_day: 48
+  horizons_steps: [1, 2, 12]             # 30 min, 1 h, 6 h  (the Eluru 15 min horizon has no exact equivalent)
+  features:                               # same recipe as Phase 3 in time units: 6 h look-back
+    lags: [1, 2, 3, 4, 6, 12]            # 30 min .. 6 h
+    windows: [2, 6, 12]                  # 1 h, 3 h, 6 h
+    slope_window: 6                      # 3 h
+    age_cap: 48
+    flag_lookback: 12
+    warmup_steps: 12
+split:
+  fractions: {train: 0.6, val: 0.2}      # as Phase 4; calendar-midnight cutoffs shared by all ponds (expected: train to about late Dec 2023, val to about early-mid Mar 2024)
+  embargo_steps: 24                      # 12 h = 6 h look-back + 6 h horizon, as Phase 4
+  n_sealed_ponds: 1
+  seed: 20261113
+  cv_folds: 4                            # leave-one-pond-out over the 4 development ponds
+  min_val_origins: 300
+  min_test_origins: 300
+  expected_shift: "train covers spring to autumn, validation is winter, test is spring: large temperature shift is expected and will be reported, not hidden"
+models:
+  baselines: ["persistence (same as now)", "seasonal naive (same time yesterday = 48 steps)"]
+  main: "anchored-residual LightGBM, quality-blind, daily-pattern features (day = 48 steps), Phase 5 fixed settings, seeds [0,1,2]; anchor = same-as-now at 30 min and 1 h, same-time-yesterday at 6 h"
+  no_tuning: true
+success_rules:
+  forecast:
+    cell: "per target (DO, pH, Temp) and horizon (30 min, 1 h, 6 h) on held-out ponds (validation window), 99% blocked-bootstrap intervals (blocks = pond x day)"
+    pass: "the lower end of the interval of improvement over BOTH simple guesses is > 0"
+    method_replicates: "at least 3 of the 9 cells pass AND at least one of the three 6 h cells passes; otherwise the method does NOT replicate on this dataset and the result is reported as such"
+    fallback: "failed cells use the best simple guess, as in Phase 5b"
+  ranges:
+    method: "split-conformal, 90% target, calibration = errors from the other three held-out ponds"
+    pass: "pooled coverage in [0.87, 0.93]; conditional check >= 0.85 in day, night (local hours 06 to 18 America/New_York) and low-value strata, else the day/night variant"
+  alert:
+    event: "any valid DO reading below 2.0 mg/L within the next 1 h, 3 h, 6 h (2, 6, 12 steps); window with no event counts as no-event only if >= 50% of slots are valid"
+    pass: "per window, lower end of the 99% interval of (model AP minus each baseline AP) > 0 for ALL of: current level, trend extrapolation, same window yesterday"
+    calibration: "isotonic fitted on the other three ponds; criterion as Phase 6b (Brier lower in every window; reliability bins with n >= 100 within 10 points)"
+    decision_rule: "as Phase 6b: level chosen on the other ponds for >= 80% episode recall; pass = false-alarm share minus baseline has 99% upper bound < 0 and recall within 5 points"
+  reporting: "every cell is reported, passing or not; no second round; no change of rules after seeing results"
+leakage_and_integrity_checks:
+  - "prefix-invariance of all features on real tables (new grid)"
+  - "independent re-derivation of targets and alert labels on sampled origins"
+  - "split independence checks as Phase 4 (embargo gaps, no pond or row overlap, sealed pond absent from every dev regime)"
+  - "assignment hash recorded; bit-identical rerun in two containers"
+out_of_scope:
+  - "zero-shot transfer of Eluru models (needs Eluru re-gridded to 30 minutes; optional later Phase 1c, separate approval)"
+  - "any use of the sealed pond or the test window"
+  - "training on both datasets together"
+  - "SHAP (Phase 7)"
