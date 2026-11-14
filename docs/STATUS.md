@@ -24,9 +24,14 @@ Plain-language FastAPI + HTML/CSS/JS app; honest refusals (too little history, s
 ## Phase 11: sealed final test (RUN ONCE on 2026-11-14)
 On 4 never-seen ponds (about 10 days): oxygen 15 min and 1 h and temperature 1 h clearly beat both plain guesses (3 of 5 model cells pass); at 6 hours 'same time yesterday' was as good or better (2 fail). Ranges never under-covered but were too wide; the low-oxygen percentages were too high and the 'High chance' level raised false alarms on 98% of pond-days. App bundle `final_v2` applies the pre-registered fallback to the two failed cells. Review pack: docs/phases/PHASE_11.md; full tables: docs/experiments/final_test_report.md.
 
-## Next
-- Phase 12: thesis and viva material.
-- Still open: Fish Welfare Initiative reply, literature full-text reading, Modal billing check, independent paper review, public deployment decision.
+## Phase 12: thesis and viva pack (drafts written)
+docs/thesis/: outline, abstract, chapters 1 to 9, claims table, 30 viva questions with honest answers, three figures from the sealed test. Chapter 2 (literature) is a skeleton: the papers still have to be read in full. Review pack: docs/phases/PHASE_12.md.
+
+## Still open (needs you)
+- Names, university, guide, declaration, ethics statement.
+- Read the papers in docs/literature_matrix.md and rewrite Chapter 2; do not claim novelty before that.
+- Fish Welfare Initiative email (draft in docs/outreach/) and the data-licence question.
+- Check Modal billing on the dashboard; independent paper review; public deployment decision; re-test final_v2 on fresh data.
 
 ## Phase 1b: external data (done)
 - AquaSustain-Bench and AquaSense: REJECTED, released data is synthetic (docs/external_data_decision.md).
